@@ -1,0 +1,75 @@
+{
+  "_from": "i18n-replace",
+  "_id": "i18n-replace@0.1.0",
+  "_inBundle": false,
+  "_integrity": "sha512-zBNphS3E3eGzwmbiKTubVwbjNtDgFseIgxZBI4gL9uN/4FIG8wxUscaYUj1fsIb+cOt+fY5GcO21wzXrQUScew==",
+  "_location": "/i18n-replace",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "i18n-replace",
+    "name": "i18n-replace",
+    "escapedName": "i18n-replace",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmmirror.com/i18n-replace/-/i18n-replace-0.1.0.tgz",
+  "_shasum": "f9418ccff632d38f1a5d0fb6b198e6ec8ea7bb4e",
+  "_spec": "i18n-replace",
+  "_where": "D:\\work\\项目\\天源迪科\\最新SVN项目地址\\报表工具\\所罗门\\solomon_web",
+  "author": {
+    "name": "谭光志"
+  },
+  "bin": {
+    "rep": "bin/replace.js"
+  },
+  "bugs": {
+    "url": "https://github.com/woai3c/i18n-replace/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "axios": "^0.20.0",
+    "md5": "^2.3.0",
+    "progress": "^2.0.3"
+  },
+  "deprecated": false,
+  "description": "前端国际化辅助工具——自动替换中文并翻译",
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.2.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "husky": "^4.3.0",
+    "jest": "^26.4.2"
+  },
+  "homepage": "https://github.com/woai3c/i18n-replace#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && npm test",
+      "commit-msg": "node script/verify-commit.js"
+    }
+  },
+  "keywords": [
+    "vue",
+    "react",
+    "i18n",
+    "jsx"
+  ],
+  "license": "MIT",
+  "name": "i18n-replace",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/woai3c/i18n-replace.git"
+  },
+  "scripts": {
+    "lint": "eslint --ext .js test/ src/ bin/",
+    "test": "jest"
+  },
+  "version": "0.1.0"
+}

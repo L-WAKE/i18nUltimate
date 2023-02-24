@@ -1,0 +1,17 @@
+module.exports = {
+  entry: ['src/components'],
+  exclude: [],
+  output: ['src/components'],
+  disableAutoTranslate: true,
+  extractOnly: false,
+  translator: null,
+  ignoreComponents: [],
+  ignoreMethods: [],
+  primaryLocale: 'zh-CN',
+  supportedLocales: ['zh-CN', 'en-US'],
+  importCode: "",
+  i18nObject: 'this',
+  i18nMethod: '$t',
+  prettier: null,
+  localeConf: { type: 'file', folder: 'locales' },
+};

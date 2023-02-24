@@ -1,0 +1,13 @@
+{
+  "login": "เข้าสู่ระบบ",
+  "fill": "เติม",
+  "settingHeader": "กรุณาตั้งชื่อหัวตาราง",
+  "open": "ขยาย",
+  "createTime": "สร้างเวลา",
+  "updateTime": "อัปเดตเวลา",
+  "completionTime": "เวลาเสร็จสิ้น",
+  "operation": "การดำเนินงาน",
+  "check": "ดู",
+  "other": "อื่นๆ",
+  "name": "ชื่อ"
+}
