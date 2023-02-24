@@ -1,0 +1,482 @@
+<template>
+    <!--公告-->
+    <div id="noticeList" class="sysNoticeBody" style="overflow: hidden;">
+        <div class="titleBox">
+            <span class="title alignLeft" style="margin-left: 10px;">{{ $t('i18n1725') }}</span>
+            <el-button icon="el-icon-plus" @click="addSysNotice" v-if="sessionUserId==superUserid" class="addNoticeBt" size="small"
+                       type="primary">{{ $t('i18n1726') }}
+            </el-button>
+        </div>
+
+        <div class="headFilterHome">
+            <div>
+                <div class="chItemWidthBlock chItemWidth">
+                    {{ $t('i18n1727') }}
+                    <el-date-picker
+                            style="width: 160px;"
+                            size="mini"
+                            v-model="beginTime"
+                            type="date"
+                            @change="checkStartDate"
+                            value-format="yyyy-MM-dd"
+                            :placeholder="$t('selectDate')">
+                    </el-date-picker>
+                </div>
+                <div class="chItemWidthBlock chItemWidth">
+                    {{ $t('i18n1728') }}
+                    <el-date-picker
+                            style="width: 160px;"
+                            size="mini"
+                            v-model="endTime"
+                            type="date"
+                            @change="checkEndDate"
+                            value-format="yyyy-MM-dd"
+                            :placeholder="$t('selectDate')">
+                    </el-date-picker>
+                </div>
+                <div class="chItemWidthBlock chItemWidth" v-if="sessionUserId==superUserid">
+                    {{ $t('i18n1020') }}
+                    <el-select style="width: 160px;" size="mini" v-model="noticeState"
+                               :placeholder="$t('all')">
+                        <el-option
+                                v-for="item in noticeStateOption"
+                                :key="item.value"
+                                :label="item.name"
+                                :value="item.value">
+                        </el-option>
+                    </el-select>
+                </div>
+                <el-input class="chItemWidth" size="mini" name="allFilter" v-model="allFilter"
+                          :placeholder="$t('i18n3')"></el-input>
+                <el-button icon="el-icon-search" style="margin-left: 20px;" @click="getNoticeList" size="mini" type="primary">{{ $t('i18n170') }}</el-button>
+                <el-button icon="el-icon-refresh-left" style="margin-left: 20px;" @click="cleanAllFilterMsg" size="mini" type="primary">{{ $t('i18n1282') }}
+                </el-button>
+            </div>
+        </div>
+        <div class="dataHome">
+            <el-table
+                    v-loading="loading"
+                    :data="tableData"
+                    size="mini"
+                    :height="mainTableHeight(335)"
+                    style="width: 100%;">
+                <el-table-column
+                        :label="$t('i18n469')"
+                        width="130">
+                    <template>
+                        <span>{{ $t('notice') }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="announcement_title"
+                        :show-overflow-tooltip="true"
+                        :label="$t('i18n796')">
+                </el-table-column>
+                <el-table-column
+                        prop="create_name"
+                        :label="$t('issuer')"
+                        width="130">
+                </el-table-column>
+                <el-table-column
+                        :label="$t('state')"
+                        width="130">
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.announcement_publish == 0">{{ $t('i18n1729') }}</span>
+                        <span v-if="scope.row.announcement_publish == 1">{{ $t('i18n1730') }}</span>
+                        <span v-if="scope.row.announcement_publish == 2">{{ $t('i18n1731') }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop="announcement_remark"
+                        :label="$t('i18n12')"
+                        v-if="sessionUserId == superUserid"
+                        :show-overflow-tooltip="true"
+                        width="130">
+                </el-table-column>
+                <el-table-column
+                        prop="announcement_publish_time"
+                        :label="$t('releaseTime')"
+                >
+                </el-table-column>
+                <el-table-column :label="$t('operation')" :width="sessionUserId == superUserid?200:100">
+                    <template slot-scope="scope">
+                        <el-button type="text"
+                                   v-if="sessionUserId ==  superUserid && scope.row.announcement_publish != 2"
+                                   @click.stop="showNoticeEdit(scope.row,scope.$index)" size="mini">{{ $t('edit') }}
+                        </el-button>
+                        <el-button type="text" @click.stop="showNoticeMsg(scope.row,scope.$index)" size="mini">{{ $t('check') }}
+                        </el-button>
+                        <el-button type="text"
+                                   v-if="sessionUserId == superUserid && scope.row.announcement_publish != 2"
+                                   @click.stop="releaseNotice(scope.row,scope.$index)" size="mini">{{ $t('publish') }}
+                        </el-button>
+                        <el-button type="text" v-if="sessionUserId == superUserid"
+                                   @click.stop="delNotice(scope.row,scope.$index)" size="mini">{{ $t('delete') }}
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <template>
+                <div class="block">
+                    <el-pagination
+                            style="padding: 5px;text-align: center;background-color: #f6f8fd;"
+                            :page-sizes="[10, 20, 30, 40,50]"
+                            :page-size="noticePageParam.pageSize"
+                            :current-page="noticePageParam.pageNum"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="noticePageParam.total"
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange">
+                    </el-pagination>
+                </div>
+            </template>
+        </div>
+
+        <noticeEdit :showNoticeWindow="showNoticeWindow" :noticeData="noticeData"></noticeEdit>
+        <showNoticeMsg :isShowNoticeMsg="isShowNoticeMsg" :noticeData="noticeData"></showNoticeMsg>
+    </div>
+</template>
+
+<script>
+    import showNoticeMsg from "../sysNotice/model/showNoticeMsg";
+    import noticeEdit from "../sysNotice/model/noticeEdit";
+
+    export default {
+        name: "sysNotice",
+        components: {showNoticeMsg, noticeEdit},
+        data() {
+            return {
+                superUserid: 1,//超级用户
+                isShowNoticeMsg: false,
+                showNoticeWindow: false,
+                noticeData: {
+                    noticeId: "",
+                    title: "",//标题
+                    data: "",//内容
+                    noticeRemark: "" //备注
+                },
+                loading: true,
+                allFilter: '',//内容过滤条件
+                beginTime: '',//开始时间
+                endTime: '',//结束时间
+                noticeState: '',//公告状态
+                sessionUserId: '1',//用户id,权限
+                noticeStateOption: [ //公告处理状态
+                    {name: {this.$t('i18n1729')}, value: "0"},
+                    {name: {this.$t('i18n1731')}, value: "2"},
+                ],
+                noticePageParam: {//分页相关
+                    pageSize: 10,//每页展示条数
+                    pageNumber: 1,//页码
+                    total: 0//总条数
+                },
+                tableData: [],
+            }
+        },
+        mounted: function () {
+            let userInfo = eval('(' + localStorage.getItem("userInfo") + ')');
+            this.sessionUserId = userInfo.user_id;
+            this.getNoticeList();
+        },
+        created: function () {
+        },
+        methods: {
+            //添加系统公告
+            addSysNotice: function () {
+                this.noticeData = {
+                    noticeId: "",
+                    title: "",//标题
+                    data: "",//内容
+                    noticeRemark: "" //备注
+                };
+                this.showNoticeWindow = true;
+
+            },
+            getNoticeList: function () {//获取公告信息
+                let _this = this;
+                let param = new URLSearchParams();
+                param.append("pagenumber", _this.noticePageParam.pageNumber);
+                param.append("pagesize", _this.noticePageParam.pageSize);
+                param.append("publichstate", this.noticeState);
+                param.append("publishstartdate", this.beginTime==null?"":this.beginTime);
+                param.append("publishenddate", this.endTime==null?"":this.endTime);
+                param.append("content", this.allFilter);
+                this.$common.requireBackData({
+                    type: 'post',
+                    param: param,
+                    url: '/ssa/noticeMessagesController/queryNoticeMessagesList.action',
+                    successCallBack: function (response) {
+                        if (response.data.code == '0000') {
+                            _this.tableData = response.data.data.data;
+                            _this.noticePageParam.total = response.data.data.size;
+                            _this.loading = false;
+                        } else {
+                            _this.$message.error(response.data.msg || 'error');
+                        }
+                    },
+                    errorCallBack: function (error) {
+                        _this.$message.error(error.msg || 'error');
+                    }
+                });
+            },
+            delNotice: function (row, index) {
+                let _this = this;
+                _this.$confirm({`${this.$t('i18n1732')}?`}, {this.$t('tips')}, {
+                    confirmButtonText: {this.$t('confirm')},
+                    cancelButtonText: {this.$t('cancel')},
+                    type: 'warning'
+                }).then(() => {
+                    _this.loading = true;
+                    _this.delNoticeFun(row.announcement_id, function (data) {
+                            _this.tableData.splice(index, 1);
+                            _this.$message({
+                                message: {this.$t('i18n471')},
+                                type: 'success'
+                            });
+
+                        //记录操作
+                        let operation_records_type=3;
+                        let operation_records_obj_type=5;
+                        let operation_records_obj_name=row.announcement_title;
+                        let operation_records_obj_id=row.announcement_id;
+                        let operation_records_obj_desc=this.$t('i18n1733')+operation_records_obj_name;
+                        _this.$common.operation_records(operation_records_type,operation_records_obj_type,operation_records_obj_id,operation_records_obj_name,operation_records_obj_desc);
+
+
+                        _this.loading = false;
+                        }, function (data) {
+                            _this.$message.error(data.msg || 'error');
+                            _this.loading = false;
+                        }
+                    )
+                });
+            },
+            delNoticeFun: function (announcement_id, successCallBack, errorCallBack) {
+                let _this = this;
+                let param = new URLSearchParams()
+                param.append('announcement_id', announcement_id);
+                this.$common.requireBackData({
+                    type: 'post',
+                    url: '/ssa/noticeMessagesController/deleteNoticeMessages.action',
+                    param: param,
+                    successCallBack: function (response) {
+                        if (response.data.status == 1) {
+                            successCallBack(response.data)
+                        } else {
+                            errorCallBack(response.data);
+                        }
+                    }
+                });
+            },
+            cleanAllFilterMsg: function () {
+                this.allFilter = "";
+                this.beginTime = "";
+                this.endTime = "";
+                this.noticeState = "";
+                this.getNoticeList();
+            },
+            handleCurrentChange(newPage) {
+                this.noticePageParam.pageNumber = newPage;
+                this.getNoticeList();
+            },
+            handleSizeChange: function (pageSize) {
+                this.noticePageParam.pageSize = pageSize;
+                this.getNoticeList();
+            },
+            //打开编辑弹窗
+            showNoticeEdit: function (row, index) {
+                let _this = this;
+                let param = new URLSearchParams()
+                param.append('announcement_id', row.announcement_id);
+                this.$common.requireBackData({
+                    type: 'post',
+                    url: '/ssa/noticeMessagesController/queryNoticeMessagesById.action',
+                    param: param,
+                    successCallBack: function (response) {
+                        if (response.data.code == '0000') {
+                            _this.noticeData = {
+                                noticeId: row.announcement_id,
+                                title: row.announcement_title,//标题
+                                data: response.data.data.announcement_content,//内容
+                                noticeRemark: _this.tableData[index].announcement_remark //备注
+                            }
+                            _this.showNoticeWindow = true;
+                        } else {
+                            _this.$message.error(response.data.msg);
+                        }
+                    },
+                    errorCallBack: function (error) {
+                        _this.$message.error(error.msg || 'error');
+                    }
+                });
+            },
+
+            checkStartDate:function(startDate){
+                if(this.endTime){
+                    let date= this.stringToDate(startDate).getTime();//开始时间
+                    let date2=this.stringToDate(this.endTime).getTime();//结束时间
+                    if(date>date2){
+                        this.$message({
+                            message: {this.$t('i18n1719')},
+                            type: 'warning'
+                        });
+                        this.beginTime="";
+                        return;
+                    }
+                }
+            },
+            checkEndDate:function(endDate){
+                if(this.beginTime){
+                    let date= this.stringToDate(endDate).getTime();//结束时间
+                    let date2=this.stringToDate(this.beginTime).getTime();//开始时间
+                    if(date<date2){
+                        this.$message({
+                            message: {this.$t('i18n1720')},
+                            type: 'warning'
+                        });
+                        this.endTime="";
+                        return;
+                    }
+                }
+            },
+            stringToDate:function (str){
+                var tempStrs = str.split(" ");
+                var dateStrs = tempStrs[0].split("-");
+                var year = parseInt(dateStrs[0], 10);
+                var month = parseInt(dateStrs[1], 10) - 1;
+                var day = parseInt(dateStrs[2], 10);
+                var date = new Date(year, month, day);
+                return date;
+            },
+            //发布公告
+            releaseNotice: function (row, index) {
+                let _this = this;
+                let param = new URLSearchParams();
+                param.append("announcement_id", row.announcement_id);
+                param.append("announcement_publish", "2");
+                param.append("announcement_state", "1");
+                _this.$confirm({`${this.$t('i18n1734')}?`}, {this.$t('tips')}, {
+                    confirmButtonText: {this.$t('confirm')},
+                    cancelButtonText: {this.$t('cancel')},
+                    type: 'warning'
+                }).then(() => {
+                    _this.$common.requireBackData({
+                        type: 'post',
+                        param: param,
+                        url: '/ssa/noticeMessagesController/saveNoticeMessages.action',
+                        successCallBack: function (response) {
+                            if (response.data.code == '0000') {
+
+                                let operation_records_obj_name=row.announcement_title;
+                                let operation_records_obj_desc=this.$t('i18n1735')+operation_records_obj_name;
+                                let operation_records_type=5;
+                                let operation_records_obj_type=5;
+                                let operation_records_obj_id=row.announcement_id;
+                                _this.$common.operation_records(operation_records_type,operation_records_obj_type,operation_records_obj_id,operation_records_obj_name,operation_records_obj_desc);
+
+
+
+                                _this.$message.success(this.$t('i18n1736'));
+                                _this.getNoticeList();
+                            } else {
+                                _this.$message.error(response.data.msg);
+                            }
+                        },
+                        errorCallBack: function (error) {
+                            _this.$message.error(error.msg || 'error');
+                        }
+                    });
+                });
+
+            },
+            //打开查看弹窗
+            showNoticeMsg: function (row, index) {
+                let _this = this;
+                let param = new URLSearchParams()
+                param.append('announcement_id', row.announcement_id);
+                this.$common.requireBackData({
+                    type: 'post',
+                    url: '/ssa/noticeMessagesController/queryNoticeMessagesById.action',
+                    param: param,
+                    successCallBack: function (response) {
+                        if (response.data.code == '0000') {
+                            let noticeDataModel = {
+                                noticeId: "",
+                                title: row.announcement_title,
+                                data:response.data.data.announcement_content ,
+                                noticeRemark: row.announcement_remark,//备注
+                                announcement_create_time: row.announcement_create_time
+                            }
+                            _this.$set(_this, "noticeData", noticeDataModel);
+                            _this.isShowNoticeMsg = true;
+                        } else {
+                            _this.$message.error(response.data.msg);
+                        }
+                    },
+                    errorCallBack: function (error) {
+                        _this.$message.error(error.msg || 'error');
+                    }
+                });
+            },
+
+        },
+        computed: {
+            mainTableHeight(){
+                return function(x){
+                    return window.innerHeight-x;
+                }
+            }
+        }
+    }
+</script>
+
+<style scoped>
+    .sysNoticeBody {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+    }
+
+    .chItemWidth {
+        width: 245px;
+        margin-left: 15px;
+    }
+
+    .chItemWidthBlock {
+        display: inline-block;
+    }
+
+    .dataHome {
+        margin-top: 5px;
+        height:calc(100% - 214px);
+        border: 1px solid #f1ebeb;
+        border-radius: 4px;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+    .headFilterHome {
+        background: rgb(255, 255, 255);
+        height: 86px;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 4px;
+        font-size: 14px;
+        margin-right: 12px;
+        margin-left: 12px;
+    }
+    .headFilterHome>div{
+        height: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: space-around;
+
+    }
+    .addNoticeBt {
+        width: 115px;
+        float: right;
+        margin-right: 10px;
+    }
+
+</style>
