@@ -10,7 +10,7 @@ module.exports = {
   primaryLocale: 'zh-CN',
   supportedLocales: ['zh-CN', 'en-US'],
   importCode: "",
-  i18nObject: 'this',
+  i18nObject: '',
   i18nMethod: '$t',
   prettier: null,
   localeConf: { type: 'file', folder: 'locales' },

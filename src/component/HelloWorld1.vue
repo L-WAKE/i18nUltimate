@@ -1,14 +1,14 @@
 <template>
   <div>
-    <div>静夜思</div>
-    <div>床前明月光</div>
-    <div>疑是地上霜</div>
-    <div>测试</div>
-    <div>再来一次</div>
+    <div>{{ $t('i18n2') }}</div>
+    <div>{{ $t('i18n3') }}</div>
+    <div>{{ $t('i18n4') }}</div>
+    <div>{{ $t('i18n5') }}</div>
+    <div>{{ $t('i18n6') }}</div>
     <br />
     <div>{{ test }}</div>
     <br />
-    <test1 test="有一个"> </test1>
+    <test1 :test="$t('i18n7')"> </test1>
   </div>
 </template>
 
@@ -21,7 +21,7 @@ export default {
   },
   data() {
     return {
-      test: "再次",
+      test: {this.$t('i18n8')},
     };
   },
   created() {
@@ -29,7 +29,7 @@ export default {
   },
   methods: {
     init() {
-      console.log("比较");
+      console.log(this.$t('i18n9'));
     },
   },
 };

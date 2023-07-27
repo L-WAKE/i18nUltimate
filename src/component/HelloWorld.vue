@@ -1,5 +1,5 @@
 <template>
-  <div>统一的</div>
+  <div>{{ $t('i18n0') }}</div>
 </template>
 
 <script>
@@ -11,7 +11,7 @@ export default {
   },
   data() {
     return {
-      test: "统一的",
+      test: {this.$t('i18n0')},
     };
   },
   created() {
@@ -19,7 +19,7 @@ export default {
   },
   methods: {
     init() {
-      console.log("唯一的");
+      console.log(this.$t('i18n1'));
     },
   },
 };
